@@ -10,6 +10,8 @@ def remove_permissions(path):
     Params:
         path:  The path whose permissions to alter.
     """
+    # TODO: Добавить параметр, указывающий, какие пермишины надо установить/снять
+    #       У каталога .ssh должны быть права на чтение/запись/исполнение для владельца
     NO_GROUP_WRITING = ~stat.S_IWGRP
     NO_OTHER_WRITING = ~stat.S_IWOTH
     NO_GROUP_READING = ~stat.S_IRGRP
