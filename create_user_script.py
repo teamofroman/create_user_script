@@ -4,6 +4,24 @@ import pwd
 import os
 import stat
 
+def remove_permissions(path):
+    """Remove write permissions from this path, while keeping all other permissions intact.
+
+    Params:
+        path:  The path whose permissions to alter.
+    """
+    NO_GROUP_WRITING = ~stat.S_IWGRP
+    NO_OTHER_WRITING = ~stat.S_IWOTH
+    NO_GROUP_READING = ~stat.S_IRGRP
+    NO_OTHER_READING = ~stat.S_IROTH
+    NO_GROUP_EXEC = ~stat.S_IXGRP
+    NO_OTHER_EXEC = ~stat.S_IXOTH
+    NO_USER_EXEC = ~stat.S_IXUSR
+    NO_PERMISSION = NO_GROUP_WRITING & NO_OTHER_WRITING & NO_GROUP_READING & NO_OTHER_READING & NO_GROUP_EXEC & NO_OTHER_EXEC & NO_USER_EXEC
+
+    current_permissions = stat.S_IMODE(os.lstat(path).st_mode)
+    os.chmod(path, current_permissions & NO_PERMISSION)
+
 def config_argument_parser():
     parser = argparse.ArgumentParser(description='Creating and setting up user for YandexWorkshop')
     parser.add_argument(
@@ -43,7 +61,7 @@ if __name__ == '__main__':
 
     try:
         crypt_pass = crypt.crypt(
-            args.user_password if args.user_password else os.getenv('CU_DEF_PASSWD'),
+            args.user_password if args.user_password else 'P0o9i8u7y6',
             '22'
         )
         res = os.system(f'/usr/sbin/useradd --create-home --home-dir={user_dir} --shell=/usr/bin/bash --password={crypt_pass} {args.user_name}')
@@ -97,7 +115,7 @@ if __name__ == '__main__':
     print(f'\tChange {ssh_dir} owner and permission... ', end='')
     try:
         os.chown(ssh_dir, uid=user_info.pw_uid, gid=user_info.pw_gid)
-        os.chmod(ssh_dir, stat.S_IRUSR | stat.S_IWUSR | ~stat.S_IRWXG | ~stat.S_IRWXO)
+        remove_permissions(ssh_dir)
         print('OK')
     except Exception as e:
         print('ERROR')
@@ -107,7 +125,7 @@ if __name__ == '__main__':
     print(f'\tChange {key_file} owner and permission... ', end='')
     try:
         os.chown(key_file, uid=user_info.pw_uid, gid=user_info.pw_gid)
-        os.chmod(key_file, stat.S_IRUSR | stat.S_IWUSR | ~stat.S_IRWXG | ~stat.S_IRWXO)
+        remove_permissions(key_file)
         print('OK')
     except Exception as e:
         print('ERROR')
@@ -117,7 +135,7 @@ if __name__ == '__main__':
     print(f'\tChange {sudo_as_admin_file} owner and permission... ', end='')
     try:
         os.chown(sudo_as_admin_file, uid=user_info.pw_uid, gid=user_info.pw_gid)
-        os.chmod(sudo_as_admin_file, stat.S_IRUSR | stat.S_IWUSR | ~stat.S_IRWXG | ~stat.S_IRWXO)
+        remove_permissions(sudo_as_admin_file)
         print('OK')
     except Exception as e:
         print('ERROR')
@@ -126,6 +144,6 @@ if __name__ == '__main__':
 
     print('Summary info:')
     print(f'\tLogin: {args.user_name}')
-    print(f'\tPassword: {args.user_password if args.user_password else os.getenv('CU_DEF_PASSWD')}')
+    print(f'\tPassword: {args.user_password if args.user_password else "P0o9i8u7y6"}')
     print(f'\tAuthorized key file: {key_file}')
 
